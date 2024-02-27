@@ -51,3 +51,4 @@ export const createUserHandler = async (event) => {
     console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);
     return response;
 };
+// should add exception
