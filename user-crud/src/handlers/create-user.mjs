@@ -32,7 +32,7 @@ export const createUserHandler = async (event) => {
     // Creates a new item, or replaces an old item with a new item
     // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property
     var params = {
-        TableName: tableName,
+        TableName:  process.env.tableName,
         Item: { "user-id": id, emailID: emailID, password: password, displayName: displayName, teamRole: teamRole, teamID: teamID }
     };
         const data = await ddbDocClient.send(new PutCommand(params));
