@@ -13,6 +13,7 @@ const tableName = process.env.tableName;
  * A simple example includes a HTTP post method to add one item to a DynamoDB table.
  */
 export const createUserHandler = async (event) => {
+  try{
     if (event.httpMethod !== 'POST') {
         throw new Error(`postMethod only accepts POST method, you tried: ${event.httpMethod} method.`);
     }
@@ -34,20 +35,33 @@ export const createUserHandler = async (event) => {
         TableName: tableName,
         Item: { "user-id": id, emailID: emailID, password: password, displayName: displayName, teamRole: teamRole, teamID: teamID }
     };
-
-    try {
         const data = await ddbDocClient.send(new PutCommand(params));
-        console.log("Success - item added or updated", data);
-    } catch (err) {
-        console.log("Error", err.stack);
-    }
-
+        console.log("Success - item added or updated", data); 
     const response = {
         statusCode: 200,
         body: JSON.stringify(body)
     };
+  }  catch (error) {
+    console.error("Error in createUserHandler:", error);
 
-    // All log statements are written to CloudWatch
-    console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);
-    return response;
+    let errorMessage;
+    let statusCode;
+
+    if (error.message === "Missing required data in request body.") {
+      errorMessage = "Required data missing in request body";
+      statusCode = 400; // Bad Request
+    } else {
+      errorMessage = "Failed to create user";
+      statusCode = 500; // Internal Server Error
+    }
+
+    return {
+      statusCode,
+      body: JSON.stringify({ error: errorMessage }),
+    };
+  }
+
+  // All log statements are written to CloudWatch
+  console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);
+  return response;
 };

@@ -1,68 +1,67 @@
-// Imports for DynamoDB client and DocumentClient
+// Create clients and set shared const values outside of the handler.
+
+// Create a DocumentClient that represents the query to add an item
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
-
-// Create a DocumentClient from the DynamoDB client
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
-// Get DynamoDB table name from environment variables
-const tableName = user;
+// Get the DynamoDB table name from environment variables
+const tableName = process.env.tableName;
 
 /**
- * Handles creating a new user in the DynamoDB table.
- *
- * @param {Object} event The HTTP event object with request details.
- * @returns {Promise<Object>} A Promise resolving to the response object.
+ * A simple example includes a HTTP post method to add one item to a DynamoDB table.
  */
 export const createUserHandler = async (event) => {
-  try {
-    // Check for valid HTTP method (POST only)
+  try{
     if (event.httpMethod !== 'POST') {
-      throw new Error(`Method Not Allowed: ${event.httpMethod}`);
+        throw new Error(`postMethod only accepts POST method, you tried: ${event.httpMethod} method.`);
     }
+    // All log statements are written to CloudWatch
+    console.info('received:', event);
 
-    // Parse request body and extract user data
+    // Get id and name from the body of the request
     const body = JSON.parse(event.body);
-    const { id, emailID, password, displayName, teamRole, teamID } = body;
+    const id = body.id;
+    const emailID = body.emailID;
+    const password = body.password;
+    const displayName = body.displayName;
+    const teamRole = body.teamRole;
+    const teamID = body.teamID;
 
-    // Validate required fields (optional, add checks for each field)
-
-    // Construct parameters for the PutCommand
-    const params = {
-      TableName: tableName,
-      Item: {
-        "user-id": id,
-        emailID,
-        password,
-        displayName,
-        teamRole,
-        teamID,
-      },
+    // Creates a new item, or replaces an old item with a new item
+    // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property
+    var params = {
+        TableName: tableName,
+        Item: { "user-id": id, emailID: emailID, password: password, displayName: displayName, teamRole: teamRole, teamID: teamID }
     };
-
-    // Send the PutCommand to DynamoDB
-    const data = await ddbDocClient.send(new PutCommand(params));
-
-    console.log("Success - item added or updated:", data);
-
-    // Return successful response with created user data (optional)
-    return {
-      statusCode: 201, // Created
-      body: JSON.stringify(body),
+        const data = await ddbDocClient.send(new PutCommand(params));
+        console.log("Success - item added or updated", data); 
+    const response = {
+        statusCode: 200,
+        body: JSON.stringify(body)
     };
-  } catch (err) {
-    console.error("Error:", err.stack);
+  }  catch (error) {
+    console.error("Error in createUserHandler:", error);
 
-    // Use error-specific status code or 500 for general errors
-    const statusCode = err.statusCode || 500;
+    let errorMessage;
+    let statusCode;
 
-    // Provide informative error message in response
-    const message = err.message || "Internal server error";
+    if (error.message === "Missing required data in request body.") {
+      errorMessage = "Required data missing in request body";
+      statusCode = 400; // Bad Request
+    } else {
+      errorMessage = "Failed to create user";
+      statusCode = 500; // Internal Server Error
+    }
 
     return {
       statusCode,
-      body: JSON.stringify({ error: message }),
+      body: JSON.stringify({ error: errorMessage }),
     };
   }
+
+  // All log statements are written to CloudWatch
+  console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);
+  return response;
 };
