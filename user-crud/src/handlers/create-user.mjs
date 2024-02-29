@@ -35,10 +35,15 @@ export const createUserHandler = async (event) => {
     };
         const data = await ddbDocClient.send(new PutCommand(params));
         console.log("Success - item added or updated", data); 
-    response = {
-        statusCode: 200,
-        body: JSON.stringify(body)
-    };
+        const response = {
+          statusCode: 200,
+          headers: {
+              'Access-Control-Allow-Origin': '', // Change '' to your desired origin
+              'Access-Control-Allow-Headers': 'Content-Type',
+              'Access-Control-Allow-Methods': 'OPTIONS,POST,GET' // Add other allowed methods as needed
+          },
+          body: JSON.stringify({ message: 'Success' })
+      };
   }  catch (error) {
     console.error("Error in createUserHandler:", error);
 
