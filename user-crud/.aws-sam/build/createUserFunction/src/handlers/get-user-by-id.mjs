@@ -8,11 +8,12 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 // Get the DynamoDB table name from environment variables
 const tableName = process.env.tableName;
-
+let response;
 /**
  * A HTTP get method to get one user by id from a DynamoDB table.
  */
 export const getUserByIdHandler = async (event) => {
+  try{
   if (event.httpMethod !== 'GET') {
     throw new Error(`getMethod only accept GET method, you tried: ${event.httpMethod}`);
   }
@@ -29,19 +30,46 @@ export const getUserByIdHandler = async (event) => {
     Key: { "user-id": id },
   };
 
-  try {
     const data = await ddbDocClient.send(new GetCommand(params));
     var item = data.Item;
+
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify(item)
+    };
+
   } catch (err) {
-    console.log("Error", err);
+    console.error("Error:", err);
+
+    let errorMessage;
+    let statusCode = 500; // Internal Server Error
+
+    if (err instanceof DynamoDBError) {
+      // Handle specific DynamoDB errors
+      errorMessage = 'Failed to retrieve users from DynamoDB';
+      if (err.code === 'ResourceNotFoundException') {
+        errorMessage = 'Table not found';
+        statusCode = 404; // Not Found
+      } else if (err.code === 'AccessDeniedException') {
+        errorMessage = 'Access denied to table';
+        statusCode = 403; // Forbidden
+      } else if (err.code === 'ProvisionedThroughputExceededException') {
+        errorMessage = 'Provisioned throughput exceeded';
+        statusCode = 429; // Too Many Requests
+      } else {
+        console.error(err.stack); // Log full error stack for debugging
+      }
+    } else {
+      errorMessage = 'Internal server error';
+    }
+
+    return {
+      statusCode,
+      body: JSON.stringify({ error: errorMessage })
+    };
   }
 
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify(item)
-  };
-
   // All log statements are written to CloudWatch
-  console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);
+  console.info(`response from: ${event?.path} statusCode: ${response?.statusCode} body: ${response?.body}`);
   return response;
-}
+};

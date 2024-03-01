@@ -99,6 +99,57 @@ Resources:
           Properties:
             Path: /
             Method: POST
+
+  updateUserByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/update-username-by-id.updateUserByIdHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Serverless POST API to create a user in DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the user
+        - DynamoDBCrudPolicy:
+            TableName: !Ref user
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          tableName: !Ref user
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: / {id}
+            Method: PUT
+
+  getUserByEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-user-by-email.getUserByEmailHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Serverless GET API to get a user in DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the user
+        - DynamoDBCrudPolicy:
+            TableName: !Ref user
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          tableName: !Ref user
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: / {id}
+            Method: GET
+
   # Simple syntax to create a DynamoDB table with a single attribute primary key, more in
   # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesssimpletable
 

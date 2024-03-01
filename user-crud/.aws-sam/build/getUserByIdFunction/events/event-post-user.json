@@ -1,4 +1,4 @@
 {
 	"httpMethod": "POST",
-	"body": "{\"id\": \"1234IDqwooq\",\"password\": \"hello@123\",\"displayName\": \"Tahmeer Pasha\",\"emailID\": \"tahmeerpashacjc@gmail.com\",\"teamRole\": \"developer\",\"teamID\": \"1234t5grfd\"}"
+	"body": "{\"password\": \"hello@123\",\"emailID\": \"tahmeerpashacjc@gmail.com\",\"username\": \"Tahmeer\"}"
 }

@@ -8,11 +8,12 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 // Get the DynamoDB table name from environment variables
 const tableName = process.env.tableName;
-
+let response;
 /**
  * A HTTP get method to get all users from a DynamoDB table.
  */
 export const getAllUsersHandler = async (event) => {
+    try {
     if (event.httpMethod !== 'GET') {
         throw new Error(`getAllItems only accept GET method, you tried: ${event.httpMethod}`);
     }
@@ -26,19 +27,58 @@ export const getAllUsersHandler = async (event) => {
         TableName: tableName
     };
 
-    try {
-        const data = await ddbDocClient.send(new ScanCommand(params));
-        var items = data.Items;
+    let items = [];
+    let data;
+    do {
+      data = await ddbDocClient.send(new ScanCommand(params));
+      items = [...items, ...data.Items];
+      params.ExclusiveStartKey = data.LastEvaluatedKey;
+    } while (typeof data.LastEvaluatedKey !== 'undefined');
+
+
+        const response = {
+            statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '', // Change '' to your desired origin
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET' // Add other allowed methods as needed
+            },
+            body: JSON.stringify(items)
+        };
+
     } catch (err) {
-        console.log("Error", err);
+        console.error("Error:", err);
+
+    let errorMessage;
+    let statusCode = 500; // Internal Server Error
+
+    if (err instanceof DynamoDBError) {
+      // Handle specific DynamoDB errors
+      errorMessage = 'Failed to retrieve users from DynamoDB';
+      if (err.code === 'ResourceNotFoundException') {
+        errorMessage = 'Table not found';
+        statusCode = 404; // Not Found
+      } else if (err.code === 'AccessDeniedException') {
+        errorMessage = 'Access denied to table';
+        statusCode = 403; // Forbidden
+      } else if (err.code === 'ProvisionedThroughputExceededException') {
+        errorMessage = 'Provisioned throughput exceeded';
+        statusCode = 429; // Too Many Requests
+      } else {
+        console.error(err.stack); // Log full error stack for debugging
+      }
+    } else {
+      errorMessage = 'Internal server error';
     }
 
-    const response = {
-        statusCode: 200,
-        body: JSON.stringify(items)
+    return {
+      statusCode,
+      body: JSON.stringify({ error: errorMessage })
     };
+}
+
 
     // All log statements are written to CloudWatch
-    console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);
+    console.info(`response from: ${event?.path} statusCode: ${response?.statusCode} body: ${response?.body}`);
     return response;
-}
+};
