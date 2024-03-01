@@ -26,19 +26,25 @@ export const createUserHandler = async (event) => {
     const id = uuidv4();
     const emailID = body.emailID;
     const password = body.password;
+    const username = body.username;
 
     // Creates a new item, or replaces an old item with a new item
     // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property
     var params = {
         TableName:  tableName,
-        Item: { "user-id": id, emailID: emailID, password: password }
+        Item: { "user-id": id, emailID: emailID, password: password, username: username }
     };
         const data = await ddbDocClient.send(new PutCommand(params));
         console.log("Success - item added or updated", data); 
-    response = {
-        statusCode: 200,
-        body: JSON.stringify(body)
-    };
+        const response = {
+          statusCode: 200,
+          headers: {
+              'Access-Control-Allow-Origin': '', // Change '' to your desired origin
+              'Access-Control-Allow-Headers': 'Content-Type',
+              'Access-Control-Allow-Methods': 'OPTIONS,POST,GET' // Add other allowed methods as needed
+          },
+          body: JSON.stringify({ message: 'Success' })
+      };
   }  catch (error) {
     console.error("Error in createUserHandler:", error);
 

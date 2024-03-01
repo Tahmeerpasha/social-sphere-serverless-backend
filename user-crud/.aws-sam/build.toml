@@ -7,6 +7,6 @@ architecture = "x86_64"
 handler = "src/handlers/get-all-users.getAllUsersHandler"
 manifest_hash = "1334517788139c8510cef92e384bef12"
 packagetype = "Zip"
-functions = ["getAllUsersFunction", "getUserByIdFunction", "createUserFunction"]
+functions = ["getAllUsersFunction", "getUserByIdFunction", "createUserFunction", "updateUserByIdFunction", "getUserByEmailFunction"]
 
 [layer_build_definitions]
