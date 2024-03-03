@@ -1,13 +1,13 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { v4 as uuidv4 } from 'uuid';
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+
 
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.tableName;
 
-export const createUserHandler = async (event) => {
+export const registerUserHandler = async (event) => {
   let response;
   try {
     // Check if the method is POST or not
@@ -24,22 +24,33 @@ export const createUserHandler = async (event) => {
 
     // Extract data from the event
     const body = JSON.parse(event.body);
-    const id = uuidv4();
     const emailID = body.emailID;
     const password = body.password;
 
+    // Check if user already exists
+    const getCommand = new GetCommand({
+      TableName: tableName,
+      Key: {
+        emailID
+      },
+    });
+    const existingUser = await ddbDocClient.send(getCommand);
+
+    if (existingUser.Item) {
+      throw new Error("User already exists");
+    }
+
     // Create the object to add user item in database
-    const params = {
+    const putCommand = new PutCommand({
       TableName: tableName,
       Item: {
-        "user-id": id,
         emailID,
         password
       }
-    };
+    });
 
     // Add user item in database
-    const data = await ddbDocClient.send(new PutCommand(params));
+    const data = await ddbDocClient.send(putCommand);
 
     console.log("Success - item added or updated", data);
 
@@ -65,6 +76,9 @@ export const createUserHandler = async (event) => {
     if (error.message === "Missing required data in request body.") {
       errorMessage = "Required data missing in request body";
       statusCode = 400; // Bad Request
+    } else if (error.message === "User already exists") {
+      errorMessage = "User already exists";
+      statusCode = 409; // Conflict
     } else {
       errorMessage = "Failed to create user";
       statusCode = 500; // Internal Server Error
