@@ -89,5 +89,6 @@ export const loginUsersHandler = async (event) => {
             'body': JSON.stringify({ error: errorMessage }),
         };
     }
+    // TODO: Add logging here and send proper message
     return response;
 }
