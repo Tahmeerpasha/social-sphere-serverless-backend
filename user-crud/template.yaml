@@ -5,6 +5,12 @@ Description: >-
 Transform:
 - AWS::Serverless-2016-10-31
 
+Globals:
+  Api:
+    Cors:
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        AllowMethods: "'POST,OPTIONS'"
 
 Resources:
 

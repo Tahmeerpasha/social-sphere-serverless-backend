@@ -2,7 +2,6 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 
-
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.tableName;
@@ -57,14 +56,15 @@ export const registerUserHandler = async (event) => {
     // Define the response object with success message
     response = {
       statusCode: 201,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'application/json',
-        'Access-Control-Allow-Methods': 'POST'
+      'headers': {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "*",
+        "Accept": "*/*",
+        "Content-Type": "application/json"
       },
-
       // TODO: Remove password from response
-      body: JSON.stringify({ message: 'User Created Successfully', data: data })
+      'body': JSON.stringify({ message: 'User Created Successfully', data: data })
     };
   } catch (error) {
 
@@ -87,7 +87,14 @@ export const registerUserHandler = async (event) => {
 
     response = {
       statusCode,
-      body: JSON.stringify({ error: errorMessage }),
+      'headers': {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "*",
+        "Accept": "*/*",
+        "Content-Type": "application/json"
+      },
+      'body': JSON.stringify({ error: errorMessage }),
     };
   }
 

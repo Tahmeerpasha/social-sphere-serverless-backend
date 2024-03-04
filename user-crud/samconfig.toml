@@ -17,10 +17,11 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
-s3_prefix = "user-crud"
+s3_prefix = "user"
 region = "ap-south-1"
 disable_rollback = true
 image_repositories = []
+stack_name = "user"
 
 [default.package.parameters]
 resolve_s3 = true
