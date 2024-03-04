@@ -102,3 +102,5 @@ export const registerUserHandler = async (event) => {
 
   return response;
 };
+
+

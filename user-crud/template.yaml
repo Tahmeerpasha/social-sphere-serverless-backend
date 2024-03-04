@@ -36,7 +36,32 @@ Resources:
         Api:
           Type: Api
           Properties:
-            Path: /
+            Path: /register
+            Method: POST
+            
+  loginUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/login_user.loginUsersHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Serverless POST API to login a user.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the user
+        - DynamoDBCrudPolicy:
+            TableName: !Ref user
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          tableName: !Ref user
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /login
             Method: POST
 
   user:
