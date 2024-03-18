@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: posts-crud
+Transform:
+  - AWS::Serverless-2016-10-31
+Globals:
+  Api:
+    Cors:
+      AllowHeaders: '''Content-Type,Authorization,X-Amz-Date,X-Amz-Security-Token'''
+      AllowOrigin: '''*'''
+      AllowMethods: '''POST,OPTIONS,GET,PUT,DELETE'''
+Resources:
+  getAllPostsByUserEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/post-handlers.getAllPostsByUserEmailHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP GET method to get all posts of a user by user email.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref posts
+      Environment:
+        Variables:
+          tableName: !Ref posts
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /user/{userEmail}
+            Method: GET
+
+  getPostByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/post-handlers.getPostByIdHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP GET Method to get a post by ID.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref posts
+      Environment:
+        Variables:
+          tableName: !Ref posts
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: GET
+
+  createPostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/post-handlers.createPostHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP POST Method to create a post.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref posts
+      Environment:
+        Variables:
+          tableName: !Ref posts
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+
+  updatePostByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/post-handlers.updatePostByIdHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP PUT Method to update a post by id.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref posts
+      Environment:
+        Variables:
+          tableName: !Ref posts
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: PUT
+
+  deletePostByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/post-handlers.deletePostByIdHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP DELETE Method to delete a post by id.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref posts
+      Environment:
+        Variables:
+          tableName: !Ref posts
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: DELETE
+            
+  posts:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: posts
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+Outputs:
+  WebEndpoint:
+    Description: API Gateway endpoint URL for Prod stage
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
