@@ -1,0 +1,6 @@
+{
+    "httpMethod": "GET",
+    "pathParameters": {
+        "userEmail": "tahmeerpashacjc@gmail.com"
+    }
+}

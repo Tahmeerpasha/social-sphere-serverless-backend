@@ -1,0 +1,149 @@
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  idea-crud
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Globals:
+  Api:
+    Cors:
+      AllowHeaders: '''Content-Type,Authorization,X-Amz-Date,X-Amz-Security-Token'''
+      AllowOrigin: '''*'''
+      AllowMethods: '''POST,OPTIONS,GET,PUT,DELETE'''
+      
+Resources:
+  getAllIdeasByUserEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/idea-handlers.getAllIdeasByUserEmailHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP GET method to get all Ideas of a user by user email.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Ideas
+      Environment:
+        Variables:
+          tableName: !Ref Ideas
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /user/{userEmail}
+            Method: GET
+
+  getIdeaByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/idea-handlers.getIdeaByIdHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP GET Method to get a idea by ID.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Ideas
+      Environment:
+        Variables:
+          tableName: !Ref Ideas
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: GET
+
+  createIdeaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/idea-handlers.createIdeaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP POST Method to create a Idea.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Ideas
+      Environment:
+        Variables:
+          tableName: !Ref Ideas
+          bucketName: social-sphere-ideas-assets
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+
+  updateIdeaByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/idea-handlers.updateIdeaByIdHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP PUT Method to update a idea by id.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Ideas
+      Environment:
+        Variables:
+          tableName: !Ref Ideas
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: PUT
+
+  deleteIdeaByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/idea-handlers.deleteIdeaByIdHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A HTTP DELETE Method to delete a idea by id.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Ideas
+      Environment:
+        Variables:
+          tableName: !Ref Ideas
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: DELETE
+
+
+            
+  Ideas:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: ideas
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

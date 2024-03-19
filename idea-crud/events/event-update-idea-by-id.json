@@ -1,0 +1,4 @@
+{
+    "httpMethod": "PUT",
+    "body": "{\"email\": \"tahmeerpashacjc@gmail.com\",\"postContent\": \"u need to define these attributes in event.json file, and don't worry about creating the table, it'll automatically get created when u deploy the code from sam. It'll take all instructions from template.yaml file\", \"scheduledTime\":\"2024-03-17T10:30:00\", \"channelPostedTo\":\"{Youtube:true, LinkedIn:true, Instagram:false}\", \"assets\":\"{0:https:images.freepic.com/1.jpg,1:https:images.freepic.com/2.jpg}\"}"
+}
